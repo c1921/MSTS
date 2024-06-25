@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QListWidg
 from card_button import CardButton
 from game_logic import GameLogic
 from resources.cards import all_cards
+from reward_window import RewardWindow
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -64,6 +65,10 @@ class MainWindow(QMainWindow):
             self.all_cards_list.addItem(f'{card.name}: {card.description} ({card.card_type}) (Cost: {card.cost})')
         self.layout.addWidget(self.all_cards_list)
 
+        # 显示金币数量的标签
+        self.gold_label = QLabel('Gold: 0')
+        self.layout.addWidget(self.gold_label)
+
         # 结束回合的按钮
         self.end_turn_button = QPushButton('End Turn')
         self.end_turn_button.clicked.connect(self.game_logic.end_turn)
@@ -96,7 +101,7 @@ class MainWindow(QMainWindow):
         for card in discard_pile_cards:
             self.discard_pile_list.addItem(f'{card.name}: {card.description} ({card.card_type}) (Cost: {card.cost})')
 
-    def update_status_labels(self, player_energy, player_hp, player_max_hp, player_armor, enemy_name, enemy_hp, enemy_max_hp, enemy_attack_power, enemy_armor):
+    def update_status_labels(self, player_energy, player_hp, player_max_hp, player_armor, enemy_name, enemy_hp, enemy_max_hp, enemy_attack_power, enemy_armor, gold):
         # 更新状态显示
         self.energy_label.setText(f'Energy: {player_energy}')
         self.player_hp_label.setText(f'Player HP: {player_hp}/{player_max_hp} Armor: {player_armor}')
@@ -104,6 +109,15 @@ class MainWindow(QMainWindow):
         self.hand_count_label.setText(f'Hand: {len(self.game_logic.player.hand)}')
         self.deck_count_label.setText(f'Deck: {len(self.game_logic.player.deck)}')
         self.discard_pile_count_label.setText(f'Discard Pile: {len(self.game_logic.player.discard_pile)}')
+        self.gold_label.setText(f'Gold: {gold}')
+
+    def show_reward_window(self, reward_cards):
+        reward_window = RewardWindow(reward_cards, self.add_card_to_deck)
+        reward_window.exec()
+
+    def add_card_to_deck(self, card):
+        self.game_logic.player.deck.append(card)
+        self.game_logic.update_status()
 
     def close_game(self, title, message):
         QMessageBox.information(self, title, message)

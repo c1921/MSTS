@@ -1,6 +1,6 @@
 from player import Player
 from enemy import Enemy, Goblin, Orc, Dragon
-from resources.cards import strike, defend, fireball, combo_strike
+from resources.cards import all_cards, strike, defend, fireball, combo_strike
 import random
 
 class GameLogic:
@@ -9,6 +9,7 @@ class GameLogic:
         self.layer = 1
         self.player = Player('Hero', 30, 3)
         self.enemy = Goblin()
+        self.gold = 0
 
         # 初始化玩家的卡组
         self.player.deck = [strike]*5 + [defend]*5 + [fireball] + [combo_strike]*3
@@ -25,7 +26,8 @@ class GameLogic:
             enemy_hp=self.enemy.hp,
             enemy_max_hp=self.enemy.max_hp,
             enemy_attack_power=self.enemy.attack_power,
-            enemy_armor=self.enemy.armor
+            enemy_armor=self.enemy.armor,
+            gold=self.gold
         )
         self.ui.update_hand(self.player.hand)
         self.ui.update_deck(self.player.deck)
@@ -41,6 +43,8 @@ class GameLogic:
             self.player.last_played_card = card  # 更新最后打出的卡牌
         self.update_status()
         if self.enemy.hp <= 0:
+            self.gold += 50
+            self.show_reward_window()
             if self.layer == 1:
                 self.layer += 1
                 self.enemy = Orc()
@@ -74,3 +78,8 @@ class GameLogic:
             self.player.discard_pile.extend(self.player.hand)
             self.player.hand = []
             self.start_player_turn()
+
+    def show_reward_window(self):
+        # 显示奖励窗口
+        reward_cards = random.sample(all_cards, 3)
+        self.ui.show_reward_window(reward_cards)
