@@ -1,92 +1,22 @@
-import sys
 import random
+import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QMessageBox, QListWidget
 
-class Card:
-    def __init__(self, name, cost, damage, block, description, card_type):
-        self.name = name
-        self.cost = cost
-        self.damage = damage
-        self.block = block
-        self.description = description
-        self.card_type = card_type  # 卡片类型：攻击牌、技能牌、能力牌
-
-    def play(self, player, enemy):
-        if player.energy >= self.cost:
-            player.energy -= self.cost
-            enemy.hp -= self.damage
-            player.armor += self.block
-            return f'{player.name} used {self.name} ({self.card_type}) on {enemy.name}, dealing {self.damage} damage and gaining {self.block} block!'
-        else:
-            return f'Not enough energy to play {self.name}!'
-
-class Player:
-    def __init__(self, name, hp, energy):
-        self.name = name
-        self.hp = hp
-        self.max_hp = hp
-        self.energy = energy
-        self.armor = 0
-        self.hand = []
-        self.deck = []
-        self.discard_pile = []
-
-    def draw_card(self):
-        if not self.deck and self.discard_pile:
-            self.deck = self.discard_pile[:]
-            self.discard_pile.clear()
-            random.shuffle(self.deck)
-
-        if self.deck:
-            card = self.deck.pop(0)
-            self.hand.append(card)
-            return f'{self.name} drew {card.name}'
-        else:
-            return 'Deck is empty!'
-
-    def draw_cards(self, num):
-        for _ in range(num):
-            print(self.draw_card())
-
-class Enemy:
-    def __init__(self, name, hp, damage):
-        self.name = name
-        self.hp = hp
-        self.armor = 0
-        self.damage = damage
-
-    def attack(self, player):
-        if player.armor > 0:
-            absorbed = min(player.armor, self.damage)
-            player.armor -= absorbed
-            player.hp -= (self.damage - absorbed)
-            return f'{self.name} attacks {player.name} for {self.damage} damage! {absorbed} damage absorbed by armor!'
-        else:
-            player.hp -= self.damage
-            return f'{self.name} attacks {player.name} for {self.damage} damage!'
-
-# 定义卡牌
-strike = Card('Strike', 1, 6, 0, 'Deal 6 damage.', 'Attack')
-defend = Card('Defend', 1, 0, 5, 'Gain 5 block.', 'Skill')
-fireball = Card('Fireball', 2, 10, 0, 'Deal 10 damage.', 'Attack')
-
-# 所有种类的卡片列表
-all_cards = [strike, defend, fireball]
-
-# 定义角色
-player = Player('Hero', 30, 3)
-enemy = Enemy('Slime', 20, 5)
-
-# 初始化玩家的卡组
-player.deck = [strike]*5 + [defend]*5 + [fireball]
-random.shuffle(player.deck)
+from resources.cards import all_cards, strike, defend, fireball, combo_strike
+from player import Player
+from enemy import Enemy
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.player = player
-        self.enemy = enemy
+        self.player = Player('Hero', 30, 3)
+        self.enemy = Enemy('Slime', 20, 5)
+
+        # 初始化玩家的卡组
+        self.player.deck = [strike]*5 + [defend]*5 + [fireball] + [combo_strike]*3
+        random.shuffle(self.player.deck)
+
         self.initUI()
         self.start_player_turn()
 
@@ -165,11 +95,12 @@ class MainWindow(QMainWindow):
 
     def play_card(self, card):
         # 播放卡片动作
-        result = card.play(self.player, self.enemy)
+        result = card.play(self.player, self.enemy, self.player.last_played_card)
         self.info_label.setText(result)
         if 'Not enough energy' not in result:
             self.player.discard_pile.append(card)  # 将打出的卡牌放入弃牌堆
             self.player.hand.remove(card)
+            self.player.last_played_card = card  # 更新最后打出的卡牌
         self.update_status()
         if self.enemy.hp <= 0:
             QMessageBox.information(self, 'Victory', 'You defeated the enemy!')
@@ -204,7 +135,8 @@ class MainWindow(QMainWindow):
             self.player.hand = []
             self.start_player_turn()
 
-app = QApplication(sys.argv)
-main_window = MainWindow()
-main_window.show()
-sys.exit(app.exec())
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec())
