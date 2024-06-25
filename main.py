@@ -1,10 +1,49 @@
-import random
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QMessageBox, QListWidget
+import random
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFrame, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QMessageBox, QListWidget, QPushButton
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QCursor
 
 from resources.cards import all_cards, strike, defend, fireball, combo_strike
 from player import Player
 from enemy import Enemy
+
+class CardButton(QFrame):
+    def __init__(self, card, play_card_callback):
+        super().__init__()
+        self.card = card
+        self.play_card_callback = play_card_callback
+
+        self.setFrameStyle(QFrame.Shape.Box | QFrame.Shadow.Raised)
+        self.setLineWidth(2)
+
+        layout = QVBoxLayout()
+
+        h_layout = QHBoxLayout()
+
+        self.card_name = QLabel(f'{self.card.name}')
+        self.card_cost = QLabel(f'Cost: {self.card.cost}')
+        self.card_description = QLabel(f'{self.card.description}\n({self.card.card_type})')
+
+        h_layout.addWidget(self.card_name)
+        h_layout.addStretch()
+        h_layout.addWidget(self.card_cost)
+
+        layout.addLayout(h_layout)
+        layout.addWidget(self.card_description)
+
+        self.setLayout(layout)
+
+    def enterEvent(self, event):
+        self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.setStyleSheet("background-color: lightgray;")
+
+    def leaveEvent(self, event):
+        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+        self.setStyleSheet("background-color: white;")
+
+    def mousePressEvent(self, event):
+        self.play_card_callback(self.card)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -43,7 +82,7 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.enemy_hp_label)
 
         # 显示玩家手牌的布局
-        self.hand_layout = QHBoxLayout()
+        self.hand_layout = QVBoxLayout()  # 将手牌布局改为纵向排列
         self.layout.addLayout(self.hand_layout)
 
         # 显示抽牌堆的列表
@@ -79,9 +118,8 @@ class MainWindow(QMainWindow):
                 child.widget().deleteLater()
 
         for card in self.player.hand:
-            btn = QPushButton(f'{card.name}\n{card.description}\n({card.card_type})\nCost: {card.cost}')
-            btn.clicked.connect(lambda _, c=card: self.play_card(c))
-            self.hand_layout.addWidget(btn)
+            card_button = CardButton(card, self.play_card)
+            self.hand_layout.addWidget(card_button)
 
         # 更新抽牌堆显示
         self.deck_list.clear()
@@ -137,6 +175,11 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # 加载样式表
+    with open("styles.qss", "r") as file:
+        app.setStyleSheet(file.read())
+
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec())
