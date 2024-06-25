@@ -30,9 +30,9 @@ class MainWindow(QMainWindow):
         self.player_hp_label = QLabel(f'Player HP: 0/0 Armor: 0')
         self.layout.addWidget(self.player_hp_label)
 
-        # 显示敌人HP和护甲的标签
-        self.enemy_hp_label = QLabel(f'Enemy HP: 0 Armor: 0')
-        self.layout.addWidget(self.enemy_hp_label)
+        # 显示敌人信息的标签
+        self.enemy_info_label = QLabel(f'Enemy: None\nHP: 0/0\nAttack: 0\nArmor: 0')
+        self.layout.addWidget(self.enemy_info_label)
 
         # 显示手牌数量的标签
         self.hand_count_label = QLabel('Hand: 0')
@@ -96,11 +96,11 @@ class MainWindow(QMainWindow):
         for card in discard_pile_cards:
             self.discard_pile_list.addItem(f'{card.name}: {card.description} ({card.card_type}) (Cost: {card.cost})')
 
-    def update_status_labels(self, player_energy, player_hp, player_max_hp, player_armor, enemy_hp, enemy_armor):
+    def update_status_labels(self, player_energy, player_hp, player_max_hp, player_armor, enemy_name, enemy_hp, enemy_max_hp, enemy_attack_power, enemy_armor):
         # 更新状态显示
         self.energy_label.setText(f'Energy: {player_energy}')
         self.player_hp_label.setText(f'Player HP: {player_hp}/{player_max_hp} Armor: {player_armor}')
-        self.enemy_hp_label.setText(f'Enemy HP: {enemy_hp} Armor: {enemy_armor}')
+        self.enemy_info_label.setText(f'Enemy: {enemy_name}\nHP: {enemy_hp}/{enemy_max_hp}\nAttack: {enemy_attack_power}\nArmor: {enemy_armor}')
         self.hand_count_label.setText(f'Hand: {len(self.game_logic.player.hand)}')
         self.deck_count_label.setText(f'Deck: {len(self.game_logic.player.deck)}')
         self.discard_pile_count_label.setText(f'Discard Pile: {len(self.game_logic.player.discard_pile)}')

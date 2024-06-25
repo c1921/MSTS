@@ -1,13 +1,14 @@
 from player import Player
-from enemy import Enemy
+from enemy import Enemy, Goblin, Orc, Dragon
 from resources.cards import strike, defend, fireball, combo_strike
 import random
 
 class GameLogic:
     def __init__(self, ui):
         self.ui = ui
+        self.layer = 1
         self.player = Player('Hero', 30, 3)
-        self.enemy = Enemy('Slime', 20, 5)
+        self.enemy = Goblin()
 
         # 初始化玩家的卡组
         self.player.deck = [strike]*5 + [defend]*5 + [fireball] + [combo_strike]*3
@@ -20,7 +21,10 @@ class GameLogic:
             player_hp=self.player.hp,
             player_max_hp=self.player.max_hp,
             player_armor=self.player.armor,
+            enemy_name=self.enemy.name,
             enemy_hp=self.enemy.hp,
+            enemy_max_hp=self.enemy.max_hp,
+            enemy_attack_power=self.enemy.attack_power,
             enemy_armor=self.enemy.armor
         )
         self.ui.update_hand(self.player.hand)
@@ -37,7 +41,18 @@ class GameLogic:
             self.player.last_played_card = card  # 更新最后打出的卡牌
         self.update_status()
         if self.enemy.hp <= 0:
-            self.ui.close_game('Victory', 'You defeated the enemy!')
+            if self.layer == 1:
+                self.layer += 1
+                self.enemy = Orc()
+                self.ui.info_label.setText('You defeated the Goblin! A new enemy approaches: Orc')
+                self.start_player_turn()
+            elif self.layer == 2:
+                self.layer += 1
+                self.enemy = Dragon()
+                self.ui.info_label.setText('You defeated the Orc! A new enemy approaches: Dragon')
+                self.start_player_turn()
+            else:
+                self.ui.close_game('Victory', 'You defeated the Dragon and won the game!')
 
     def start_player_turn(self):
         # 开始玩家回合
