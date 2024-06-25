@@ -21,13 +21,21 @@ class CardButton(QFrame):
 
         h_layout = QHBoxLayout()
 
-        self.card_name = QLabel(f'{self.card.name}')
         self.card_cost = QLabel(f'Cost: {self.card.cost}')
-        self.card_description = QLabel(f'{self.card.description}\n({self.card.card_type})')
+        self.card_name = QLabel(f'{self.card.name}')
+        self.card_type = QLabel(f'{self.card.card_type}')
 
+        self.card_cost.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.card_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.card_type.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+        h_layout.addWidget(self.card_cost)
+        h_layout.addStretch()
         h_layout.addWidget(self.card_name)
         h_layout.addStretch()
-        h_layout.addWidget(self.card_cost)
+        h_layout.addWidget(self.card_type)
+
+        self.card_description = QLabel(f'{self.card.description}')
 
         layout.addLayout(h_layout)
         layout.addWidget(self.card_description)
@@ -81,19 +89,29 @@ class MainWindow(QMainWindow):
         self.enemy_hp_label = QLabel(f'Enemy HP: {self.enemy.hp} Armor: {self.enemy.armor}')
         self.layout.addWidget(self.enemy_hp_label)
 
+        # 显示手牌数量的标签
+        self.hand_count_label = QLabel('Hand: 0')
+        self.layout.addWidget(self.hand_count_label)
+
         # 显示玩家手牌的布局
         self.hand_layout = QVBoxLayout()  # 将手牌布局改为纵向排列
         self.layout.addLayout(self.hand_layout)
 
-        # 显示抽牌堆的列表
+        # 显示抽牌堆的布局和数量标签
+        self.deck_layout = QVBoxLayout()
+        self.layout.addLayout(self.deck_layout)
+        self.deck_count_label = QLabel('Deck: 0')
         self.deck_list = QListWidget()
-        self.layout.addWidget(QLabel('Deck:'))
-        self.layout.addWidget(self.deck_list)
+        self.deck_layout.addWidget(self.deck_count_label)
+        self.deck_layout.addWidget(self.deck_list)
 
-        # 显示弃牌堆的列表
+        # 显示弃牌堆的布局和数量标签
+        self.discard_pile_layout = QVBoxLayout()
+        self.layout.addLayout(self.discard_pile_layout)
+        self.discard_pile_count_label = QLabel('Discard Pile: 0')
         self.discard_pile_list = QListWidget()
-        self.layout.addWidget(QLabel('Discard Pile:'))
-        self.layout.addWidget(self.discard_pile_list)
+        self.discard_pile_layout.addWidget(self.discard_pile_count_label)
+        self.discard_pile_layout.addWidget(self.discard_pile_list)
 
         # 显示所有卡片种类的列表
         self.all_cards_list = QListWidget()
@@ -130,6 +148,11 @@ class MainWindow(QMainWindow):
         self.discard_pile_list.clear()
         for card in self.player.discard_pile:
             self.discard_pile_list.addItem(f'{card.name}: {card.description} ({card.card_type}) (Cost: {card.cost})')
+
+        # 更新数量标签
+        self.hand_count_label.setText(f'Hand: {len(self.player.hand)}')
+        self.deck_count_label.setText(f'Deck: {len(self.player.deck)}')
+        self.discard_pile_count_label.setText(f'Discard Pile: {len(self.player.discard_pile)}')
 
     def play_card(self, card):
         # 播放卡片动作
