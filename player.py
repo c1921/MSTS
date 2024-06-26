@@ -1,31 +1,38 @@
-from card import Card
 import random
 
 class Player:
-    def __init__(self, name, hp, energy):
+    def __init__(self, name, max_hp, max_energy):
         self.name = name
-        self.hp = hp
-        self.max_hp = hp
-        self.energy = energy
+        self.max_hp = max_hp
+        self.hp = max_hp
+        self.max_energy = max_energy
+        self.energy = max_energy
         self.armor = 0
-        self.hand = []
         self.deck = []
+        self.hand = []
         self.discard_pile = []
         self.last_played_card = None
+        self.states = {}  # 状态属性
 
-    def draw_card(self):
-        if not self.deck and self.discard_pile:
-            self.deck = self.discard_pile[:]
-            self.discard_pile.clear()
-            random.shuffle(self.deck)
+    def draw_cards(self, num_cards):
+        for _ in range(num_cards):
+            if not self.deck:
+                self.deck, self.discard_pile = self.discard_pile, self.deck
+                random.shuffle(self.deck)
+            if self.deck:
+                self.hand.append(self.deck.pop())
 
-        if self.deck:
-            card = self.deck.pop(0)
-            self.hand.append(card)
-            return f'{self.name} drew {card.name}'
+    def restore_energy(self):
+        self.energy = self.max_energy
+
+    def add_state(self, state_name, amount):
+        if state_name in self.states:
+            self.states[state_name] += amount
         else:
-            return 'Deck is empty!'
+            self.states[state_name] = amount
 
-    def draw_cards(self, num):
-        for _ in range(num):
-            print(self.draw_card())
+    def remove_state(self, state_name, amount):
+        if state_name in self.states:
+            self.states[state_name] -= amount
+            if self.states[state_name] <= 0:
+                del self.states[state_name]

@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.layer_label)
 
         player_layout = QVBoxLayout()
-        self.energy_label = QLabel(f'Energy: 0')
+        self.energy_label = QLabel(f'Energy: 0/0')
         player_layout.addWidget(self.energy_label)
 
         self.player_hp_label = QLabel(f'Player HP: 0/0 Armor: 0')
@@ -35,12 +35,18 @@ class MainWindow(QMainWindow):
         self.player_hp_bar = QProgressBar()
         player_layout.addWidget(self.player_hp_bar)
 
+        self.player_states_label = QLabel('States:')
+        player_layout.addWidget(self.player_states_label)
+
         enemy_layout = QVBoxLayout()
         self.enemy_info_label = QLabel(f'Enemy: None\nHP: 0/0\nAttack: 0\nArmor: 0')
         enemy_layout.addWidget(self.enemy_info_label)
 
         self.enemy_hp_bar = QProgressBar()
         enemy_layout.addWidget(self.enemy_hp_bar)
+
+        self.enemy_states_label = QLabel('States:')
+        enemy_layout.addWidget(self.enemy_states_label)
 
         info_layout = QHBoxLayout()
         info_layout.addLayout(player_layout)
@@ -103,8 +109,8 @@ class MainWindow(QMainWindow):
         for card in discard_pile_cards:
             self.discard_pile_list.addItem(f'{card.name}: {card.description} ({card.card_type}) (Cost: {card.cost})')
 
-    def update_status_labels(self, player_energy, player_hp, player_max_hp, player_armor, enemy_name, enemy_hp, enemy_max_hp, enemy_attack_power, enemy_armor, gold, layer):
-        self.energy_label.setText(f'Energy: {player_energy}')
+    def update_status_labels(self, player_energy, player_max_energy, player_hp, player_max_hp, player_armor, enemy_name, enemy_hp, enemy_max_hp, enemy_attack_power, enemy_armor, gold, layer):
+        self.energy_label.setText(f'Energy: {player_energy}/{player_max_energy}')
         self.player_hp_label.setText(f'Player HP: {player_hp}/{player_max_hp} Armor: {player_armor}')
         self.player_hp_bar.setMaximum(player_max_hp)
         self.player_hp_bar.setValue(player_hp)
@@ -118,6 +124,17 @@ class MainWindow(QMainWindow):
         self.discard_pile_count_label.setText(f'Discard Pile: {len(self.game_logic.player.discard_pile)}')
         self.gold_label.setText(f'Gold: {gold}')
         self.layer_label.setText(f'Layer: {layer}')
+
+        self.update_states()
+
+    def update_states(self):
+        # 更新玩家状态显示
+        player_states = ', '.join([f'{state}*{amount}' for state, amount in self.game_logic.player.states.items()])
+        self.player_states_label.setText(f'States: {player_states}')
+
+        # 更新敌人状态显示
+        enemy_states = ', '.join([f'{state}*{amount}' for state, amount in self.game_logic.enemy.states.items()])
+        self.enemy_states_label.setText(f'States: {enemy_states}')
 
     def show_reward_window(self, reward_cards):
         reward_window = RewardWindow(reward_cards, self.add_card_to_deck)

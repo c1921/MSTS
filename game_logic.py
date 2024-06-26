@@ -1,6 +1,7 @@
 from player import Player
 from enemy import Enemy, Goblin, Orc, Dragon
 from resources.cards import all_cards, Strike, Defend, Fireball, ComboStrike
+from states import Poison
 import random
 
 class GameLogic:
@@ -19,6 +20,7 @@ class GameLogic:
         # 更新状态显示
         self.ui.update_status_labels(
             player_energy=self.player.energy,
+            player_max_energy=self.player.max_energy,
             player_hp=self.player.hp,
             player_max_hp=self.player.max_hp,
             player_armor=self.player.armor,
@@ -33,6 +35,15 @@ class GameLogic:
         self.ui.update_hand(self.player.hand)
         self.ui.update_deck(self.player.deck)
         self.ui.update_discard_pile(self.player.discard_pile)
+        self.ui.update_states()
+
+    def apply_states(self, target):
+        state_messages = []
+        for state in target.states.keys():
+            if state == 'Poison':
+                poison = Poison()
+                state_messages.append(poison.apply(target))
+        return state_messages
 
     def play_card(self, card):
         # 播放卡片动作
@@ -61,7 +72,7 @@ class GameLogic:
 
     def start_player_turn(self):
         # 开始玩家回合
-        self.player.energy = 3
+        self.player.restore_energy()
         self.player.armor = 0  # 回合开始时护甲值降为0
         self.enemy.armor = 0  # 敌人护甲值降为0
         self.player.hand = []
@@ -72,6 +83,15 @@ class GameLogic:
         # 结束回合
         result = self.enemy.attack(self.player)
         self.ui.info_label.setText(result)
+
+        # 应用中毒状态效果
+        player_state_messages = self.apply_states(self.player)
+        enemy_state_messages = self.apply_states(self.enemy)
+
+        # 更新状态信息
+        if player_state_messages or enemy_state_messages:
+            self.ui.info_label.setText('\n'.join(player_state_messages + enemy_state_messages))
+
         if self.player.hp <= 0:
             self.ui.close_game('Defeat', 'You have been defeated!')
         else:

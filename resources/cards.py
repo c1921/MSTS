@@ -93,7 +93,7 @@ class Poison(Card):
         player.energy -= self.cost
         damage_dealt = max(0, 4 - enemy.armor)
         enemy.hp -= damage_dealt
-        enemy.poison += 3  # 假设敌人有一个毒性属性
+        enemy.add_state('Poison', 3)  # 添加毒性状态
         return f'Hero used Poison on {enemy.name}, dealing {damage_dealt} damage and applying 3 poison!'
 
 # 将所有卡牌添加到列表中
