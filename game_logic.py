@@ -27,7 +27,8 @@ class GameLogic:
             enemy_max_hp=self.enemy.max_hp,
             enemy_attack_power=self.enemy.attack_power,
             enemy_armor=self.enemy.armor,
-            gold=self.gold
+            gold=self.gold,
+            layer=self.layer
         )
         self.ui.update_hand(self.player.hand)
         self.ui.update_deck(self.player.deck)
