@@ -1,6 +1,6 @@
 from player import Player
 from enemy import Enemy, Goblin, Orc, Dragon
-from resources.cards import all_cards, strike, defend, fireball, combo_strike
+from resources.cards import all_cards, Strike, Defend, Fireball, ComboStrike
 import random
 
 class GameLogic:
@@ -12,7 +12,7 @@ class GameLogic:
         self.gold = 0
 
         # 初始化玩家的卡组
-        self.player.deck = [strike]*5 + [defend]*5 + [fireball] + [combo_strike]*3
+        self.player.deck = [Strike()]*5 + [Defend()]*5 + [Fireball()] + [ComboStrike()]*3
         random.shuffle(self.player.deck)
 
     def update_status(self):
