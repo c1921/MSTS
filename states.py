@@ -8,6 +8,9 @@ class State:
     def apply(self, target):
         pass
 
+    def modify_armor(self, amount, target):
+        return amount
+
 class Poison(State):
     def __init__(self):
         super().__init__('Poison', 'Deals damage at the end of each turn.')
@@ -22,5 +25,15 @@ class Poison(State):
             return f'{target.name} takes {poison_amount} poison damage!'
         return f'{target.name} is not poisoned.'
 
+class Nimbleness(State):
+    def __init__(self):
+        super().__init__('Nimbleness', 'Increases armor gain by the value of Nimbleness.')
+
+    def modify_armor(self, amount, target):
+        if 'Nimbleness' in target.states:
+            nimbleness_amount = target.states['Nimbleness']
+            return amount + nimbleness_amount
+        return amount
+
 # 将所有状态效果添加到列表中
-all_states = [Poison()]
+all_states = [Poison(), Nimbleness()]

@@ -1,7 +1,8 @@
 from player import Player
 from enemy import Enemy, Goblin, Orc, Dragon
 from resources.cards import all_cards, Strike, Defend, Fireball, ComboStrike
-from states import Poison
+from states import Poison, Nimbleness
+from traits import Notochord
 import random
 
 class GameLogic:
@@ -15,6 +16,9 @@ class GameLogic:
         # 初始化玩家的卡组
         self.player.deck = [Strike()]*5 + [Defend()]*5 + [Fireball()] + [ComboStrike()]*3
         random.shuffle(self.player.deck)
+
+        # 初始化玩家的性状
+        self.player.add_trait(Notochord())
 
     def update_status(self):
         # 更新状态显示
@@ -35,6 +39,7 @@ class GameLogic:
         self.ui.update_hand(self.player.hand)
         self.ui.update_deck(self.player.deck)
         self.ui.update_discard_pile(self.player.discard_pile)
+        self.ui.update_traits(self.player.traits)
         self.ui.update_states()
 
     def apply_states(self, target):
@@ -45,8 +50,18 @@ class GameLogic:
                 state_messages.append(poison.apply(target))
         return state_messages
 
+    def modify_armor_gain(self, amount, target):
+        for state in target.states.keys():
+            if state == 'Nimbleness':
+                nimbleness = Nimbleness()
+                amount = nimbleness.modify_armor(amount, target)
+        return amount
+
     def play_card(self, card):
         # 播放卡片动作
+        if isinstance(card, Defend):
+            card.armor_gain = self.modify_armor_gain(card.armor_gain, self.player)
+
         result = card.play(self.player, self.enemy, self.player.last_played_card)
         self.ui.info_label.setText(result)
         if 'Not enough energy' not in result:

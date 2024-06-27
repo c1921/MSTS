@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
         self.game_logic.start_player_turn()
 
     def initUI(self):
-        self.setWindowTitle('Slay the Spire Clone')
+        self.setWindowTitle('Minimal Slay the Spire')
         self.setGeometry(100, 100, 800, 600)
 
         main_layout = QVBoxLayout()
@@ -24,6 +24,9 @@ class MainWindow(QMainWindow):
 
         self.layer_label = QLabel('Layer: 1')
         main_layout.addWidget(self.layer_label)
+
+        self.traits_label = QLabel('Traits:')
+        main_layout.addWidget(self.traits_label)
 
         player_layout = QVBoxLayout()
         self.energy_label = QLabel(f'Energy: 0/0')
@@ -135,6 +138,11 @@ class MainWindow(QMainWindow):
         # 更新敌人状态显示
         enemy_states = ', '.join([f'{state}*{amount}' for state, amount in self.game_logic.enemy.states.items()])
         self.enemy_states_label.setText(f'States: {enemy_states}')
+
+    def update_traits(self, traits):
+        # 更新性状显示
+        trait_descriptions = ', '.join([f'{trait.name}: {trait.description}' for trait in traits])
+        self.traits_label.setText(f'Traits: {trait_descriptions}')
 
     def show_reward_window(self, reward_cards):
         reward_window = RewardWindow(reward_cards, self.add_card_to_deck)

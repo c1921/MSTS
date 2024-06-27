@@ -13,6 +13,7 @@ class Player:
         self.discard_pile = []
         self.last_played_card = None
         self.states = {}  # 状态属性
+        self.traits = []  # 性状属性
 
     def draw_cards(self, num_cards):
         for _ in range(num_cards):
@@ -36,3 +37,7 @@ class Player:
             self.states[state_name] -= amount
             if self.states[state_name] <= 0:
                 del self.states[state_name]
+
+    def add_trait(self, trait):
+        self.traits.append(trait)
+        trait.apply(self)
