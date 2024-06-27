@@ -36,13 +36,52 @@ class CardButton(QFrame):
 
         self.setLayout(layout)
 
+        # 设置默认样式
+        self.setStyleSheet("""
+            CardButton {
+                background-color: #4a4a4a;
+                color: #ffffff;
+                border: 1px solid #5a5a5a;
+                border-radius: 4px;
+                
+            }
+            QLabel {
+                border: none;
+                color: #ffffff;
+            }
+        """)
+
     def enterEvent(self, event):
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.setStyleSheet("background-color: lightgray;")
+        self.setStyleSheet("""
+            CardButton {
+                background-color: #5a5a5a;
+                color: #ffffff;
+                border: 1px solid #5a5a5a;
+                border-radius: 4px;
+                
+            }
+            QLabel {
+                border: none;
+                color: #ffffff;
+            }
+        """)
 
     def leaveEvent(self, event):
         self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
-        self.setStyleSheet("background-color: white;")
+        self.setStyleSheet("""
+            CardButton {
+                background-color: #4a4a4a;
+                color: #ffffff;
+                border: 1px solid #5a5a5a;
+                border-radius: 4px;
+                
+            }
+            QLabel {
+                border: none;
+                color: #ffffff;
+            }
+        """)
 
     def mousePressEvent(self, event):
         self.play_card_callback(self.card)

@@ -23,7 +23,12 @@ class RewardWindow(QDialog):
         layout.addWidget(skip_button)
 
         self.setLayout(layout)
+        self.load_stylesheet()
 
     def select_card(self, card):
         self.add_card_callback(card)
         self.accept()  # This will close the dialog
+
+    def load_stylesheet(self):
+        with open('dark_theme.qss', 'r') as file:
+            self.setStyleSheet(file.read())

@@ -37,10 +37,12 @@ class GameLogic:
             layer=self.layer
         )
         self.ui.update_hand(self.player.hand)
-        self.ui.update_deck(self.player.deck)
-        self.ui.update_discard_pile(self.player.discard_pile)
         self.ui.update_traits(self.player.traits)
         self.ui.update_states()
+
+        # 更新窗口内容
+        self.ui.deck_window.update_deck_list(self.player.deck)
+        self.ui.discard_pile_window.update_discard_pile_list(self.player.discard_pile)
 
     def apply_states(self, target):
         state_messages = []
@@ -72,6 +74,7 @@ class GameLogic:
         if self.enemy.hp <= 0:
             self.gold += 50
             self.show_reward_window()
+            self.reset_deck()
             if self.layer == 1:
                 self.layer += 1
                 self.enemy = Orc()
@@ -119,3 +122,11 @@ class GameLogic:
         # 显示奖励窗口
         reward_cards = random.sample(all_cards, 3)
         self.ui.show_reward_window(reward_cards)
+
+    def reset_deck(self):
+        # 将手牌、弃牌堆、摸牌堆都放回牌组并洗牌
+        self.player.deck.extend(self.player.hand)
+        self.player.deck.extend(self.player.discard_pile)
+        self.player.hand = []
+        self.player.discard_pile = []
+        random.shuffle(self.player.deck)

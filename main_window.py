@@ -1,8 +1,11 @@
-from PyQt6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QListWidget, QPushButton, QMessageBox, QProgressBar, QHBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QMessageBox, QProgressBar, QHBoxLayout, QApplication
 from card_button import CardButton
 from game_logic import GameLogic
 from resources.cards import all_cards
 from reward_window import RewardWindow
+from deck_window import DeckWindow
+from discard_pile_window import DiscardPileWindow
+import sys
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -10,23 +13,62 @@ class MainWindow(QMainWindow):
 
         self.game_logic = GameLogic(self)
 
+        self.deck_window = DeckWindow(self.game_logic.player.deck)
+        self.discard_pile_window = DiscardPileWindow(self.game_logic.player.discard_pile)
+
         self.initUI()
+        self.load_stylesheet()
         self.game_logic.start_player_turn()
 
     def initUI(self):
         self.setWindowTitle('Minimal Slay the Spire')
         self.setGeometry(100, 100, 800, 600)
 
-        main_layout = QVBoxLayout()
+        main_layout = QHBoxLayout()  # 修改为水平布局
+
+        left_layout = QVBoxLayout()  # 左侧布局
 
         self.info_label = QLabel('Welcome to the battle!')
-        main_layout.addWidget(self.info_label)
+        left_layout.addWidget(self.info_label)
 
         self.layer_label = QLabel('Layer: 1')
-        main_layout.addWidget(self.layer_label)
+        left_layout.addWidget(self.layer_label)
 
         self.traits_label = QLabel('Traits:')
-        main_layout.addWidget(self.traits_label)
+        left_layout.addWidget(self.traits_label)
+
+        self.hand_count_label = QLabel('Hand: 0')
+        left_layout.addWidget(self.hand_count_label)
+
+        self.hand_layout = QVBoxLayout()
+        left_layout.addLayout(self.hand_layout)
+
+        deck_button = QPushButton('Open Deck')
+        deck_button.clicked.connect(self.open_deck_window)
+        left_layout.addWidget(deck_button)
+
+        discard_pile_button = QPushButton('Open Discard Pile')
+        discard_pile_button.clicked.connect(self.open_discard_pile_window)
+        left_layout.addWidget(discard_pile_button)
+
+        self.gold_label = QLabel('Gold: 0')
+        left_layout.addWidget(self.gold_label)
+
+        self.end_turn_button = QPushButton('End Turn')
+        self.end_turn_button.clicked.connect(self.game_logic.end_turn)
+        left_layout.addWidget(self.end_turn_button)
+
+        right_layout = QVBoxLayout()  # 右侧布局
+
+        enemy_layout = QVBoxLayout()
+        self.enemy_info_label = QLabel(f'Enemy: None\nHP: 0/0\nAttack: 0\nArmor: 0')
+        enemy_layout.addWidget(self.enemy_info_label)
+
+        self.enemy_hp_bar = QProgressBar()
+        enemy_layout.addWidget(self.enemy_hp_bar)
+
+        self.enemy_states_label = QLabel('States:')
+        enemy_layout.addWidget(self.enemy_states_label)
 
         player_layout = QVBoxLayout()
         self.energy_label = QLabel(f'Energy: 0/0')
@@ -41,56 +83,19 @@ class MainWindow(QMainWindow):
         self.player_states_label = QLabel('States:')
         player_layout.addWidget(self.player_states_label)
 
-        enemy_layout = QVBoxLayout()
-        self.enemy_info_label = QLabel(f'Enemy: None\nHP: 0/0\nAttack: 0\nArmor: 0')
-        enemy_layout.addWidget(self.enemy_info_label)
+        right_layout.addLayout(enemy_layout)  # 敌人信息在上
+        right_layout.addLayout(player_layout)  # 玩家信息在下
 
-        self.enemy_hp_bar = QProgressBar()
-        enemy_layout.addWidget(self.enemy_hp_bar)
-
-        self.enemy_states_label = QLabel('States:')
-        enemy_layout.addWidget(self.enemy_states_label)
-
-        info_layout = QHBoxLayout()
-        info_layout.addLayout(player_layout)
-        info_layout.addLayout(enemy_layout)
-        main_layout.addLayout(info_layout)
-
-        self.hand_count_label = QLabel('Hand: 0')
-        main_layout.addWidget(self.hand_count_label)
-
-        self.hand_layout = QVBoxLayout()
-        main_layout.addLayout(self.hand_layout)
-
-        self.deck_layout = QVBoxLayout()
-        main_layout.addLayout(self.deck_layout)
-        self.deck_count_label = QLabel('Deck: 0')
-        self.deck_list = QListWidget()
-        self.deck_layout.addWidget(self.deck_count_label)
-        self.deck_layout.addWidget(self.deck_list)
-
-        self.discard_pile_layout = QVBoxLayout()
-        main_layout.addLayout(self.discard_pile_layout)
-        self.discard_pile_count_label = QLabel('Discard Pile: 0')
-        self.discard_pile_list = QListWidget()
-        self.discard_pile_layout.addWidget(self.discard_pile_count_label)
-        self.discard_pile_layout.addWidget(self.discard_pile_list)
-
-        self.all_cards_list = QListWidget()
-        for card in all_cards:
-            self.all_cards_list.addItem(f'{card.name}: {card.description} ({card.card_type}) (Cost: {card.cost})')
-        main_layout.addWidget(self.all_cards_list)
-
-        self.gold_label = QLabel('Gold: 0')
-        main_layout.addWidget(self.gold_label)
-
-        self.end_turn_button = QPushButton('End Turn')
-        self.end_turn_button.clicked.connect(self.game_logic.end_turn)
-        main_layout.addWidget(self.end_turn_button)
+        main_layout.addLayout(left_layout)  # 左侧布局添加到主布局
+        main_layout.addLayout(right_layout)  # 右侧布局添加到主布局
 
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
+
+    def load_stylesheet(self):
+        with open('dark_theme.qss', 'r') as file:
+            self.setStyleSheet(file.read())
 
     def update_hand(self, hand_cards):
         while self.hand_layout.count():
@@ -102,15 +107,11 @@ class MainWindow(QMainWindow):
             card_button = CardButton(card, self.game_logic.play_card)
             self.hand_layout.addWidget(card_button)
 
-    def update_deck(self, deck_cards):
-        self.deck_list.clear()
-        for card in deck_cards:
-            self.deck_list.addItem(f'{card.name}: {card.description} ({card.card_type}) (Cost: {card.cost})')
+    def open_deck_window(self):
+        self.deck_window.show()
 
-    def update_discard_pile(self, discard_pile_cards):
-        self.discard_pile_list.clear()
-        for card in discard_pile_cards:
-            self.discard_pile_list.addItem(f'{card.name}: {card.description} ({card.card_type}) (Cost: {card.cost})')
+    def open_discard_pile_window(self):
+        self.discard_pile_window.show()
 
     def update_status_labels(self, player_energy, player_max_energy, player_hp, player_max_hp, player_armor, enemy_name, enemy_hp, enemy_max_hp, enemy_attack_power, enemy_armor, gold, layer):
         self.energy_label.setText(f'Energy: {player_energy}/{player_max_energy}')
@@ -123,12 +124,14 @@ class MainWindow(QMainWindow):
         self.enemy_hp_bar.setValue(enemy_hp)
 
         self.hand_count_label.setText(f'Hand: {len(self.game_logic.player.hand)}')
-        self.deck_count_label.setText(f'Deck: {len(self.game_logic.player.deck)}')
-        self.discard_pile_count_label.setText(f'Discard Pile: {len(self.game_logic.player.discard_pile)}')
         self.gold_label.setText(f'Gold: {gold}')
         self.layer_label.setText(f'Layer: {layer}')
 
         self.update_states()
+
+        # 更新窗口内容
+        self.deck_window.update_deck_list(self.game_logic.player.deck)
+        self.discard_pile_window.update_discard_pile_list(self.game_logic.player.discard_pile)
 
     def update_states(self):
         # 更新玩家状态显示
@@ -150,8 +153,15 @@ class MainWindow(QMainWindow):
 
     def add_card_to_deck(self, card):
         self.game_logic.player.deck.append(card)
+        self.game_logic.reset_deck()
         self.game_logic.update_status()
 
     def close_game(self, title, message):
         QMessageBox.information(self, title, message)
         self.close()
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec())
