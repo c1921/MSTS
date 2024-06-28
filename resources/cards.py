@@ -23,13 +23,13 @@ class Strike(Card):
 class Defend(Card):
     def __init__(self):
         super().__init__('Defend', 'Gain 5 block.', 'Skill', 1)
-        self.armor_gain = 5
+        self.base_armor_gain = 5  # 基础护甲值
 
     def play(self, player, enemy, last_played_card):
         if player.energy < self.cost:
             return 'Not enough energy to play Defend!'
         player.energy -= self.cost
-        player.armor += self.armor_gain
+        player.armor += self.armor_gain  # 使用计算后的护甲值
         return f'Hero used Defend, gaining {self.armor_gain} block!'
 
 class Fireball(Card):

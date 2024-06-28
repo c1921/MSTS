@@ -62,7 +62,9 @@ class GameLogic:
     def play_card(self, card):
         # 播放卡片动作
         if isinstance(card, Defend):
-            card.armor_gain = self.modify_armor_gain(card.armor_gain, self.player)
+            # 计算护甲值
+            armor_gain = self.modify_armor_gain(card.base_armor_gain, self.player)
+            card.armor_gain = armor_gain
 
         result = card.play(self.player, self.enemy, self.player.last_played_card)
         self.ui.info_label.setText(result)
